@@ -1,0 +1,139 @@
+<%- include("partials/header") %>
+
+<main class="container">
+  <section class="dashboard-section">
+    <div class="page-header">
+      <h1>Family Links</h1>
+
+    </div>
+
+    <% if (error) { %>
+      <div class="alert-error"><%= error %></div>
+    <% } %>
+
+    <% if (success) { %>
+      <div class="alert-success"><%= success %></div>
+    <% } %>
+
+    <%- include("partials/patient-workspace", {
+      patient,
+      familyMembers,
+      activeTab: "family",
+      workspaceTitle: "Family relationship workspace",
+      workspaceDescription: ""
+    }) %>
+
+
+
+    <div class="card link-form-card" style="margin-top: 1.5rem;">
+      <h2>Add Family Link</h2>
+
+
+      <form action="/family-links/<%= patient.patient_code %>" method="POST" class="emergency-search-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="related_patient_code">Select Patient</label>
+            <select id="related_patient_code" name="related_patient_code" required>
+              <option value="">Choose patient</option>
+              <% if (allPatients && allPatients.length > 0) { %>
+                <% allPatients.forEach(member => { %>
+                  <option value="<%= member.patient_code %>">
+                    <%= member.patient_code %> — <%= member.first_name %> <%= member.last_name %> (<%= member.blood_type || "N/A" %>)
+                  </option>
+                <% }) %>
+              <% } %>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="relationship">Relationship</label>
+            <select id="relationship" name="relationship" required>
+              <option value="">Choose relationship</option>
+              <option value="Father">Father</option>
+              <option value="Mother">Mother</option>
+              <option value="Son">Son</option>
+              <option value="Daughter">Daughter</option>
+              <option value="Brother">Brother</option>
+              <option value="Sister">Sister</option>
+              <option value="Husband">Husband</option>
+              <option value="Wife">Wife</option>
+              <option value="Grandfather">Grandfather</option>
+              <option value="Grandmother">Grandmother</option>
+              <option value="Grandson">Grandson</option>
+              <option value="Granddaughter">Granddaughter</option>
+              <option value="Uncle">Uncle</option>
+              <option value="Aunt">Aunt</option>
+              <option value="Nephew">Nephew</option>
+              <option value="Niece">Niece</option>
+              <option value="Cousin">Cousin</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="search-actions">
+          <button type="submit" class="btn secondary">Link Family Member</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top: 1.5rem;">
+      <div class="results-header">
+        <h2>Linked Family Members</h2>
+        <p><%= familyMembers ? familyMembers.length : 0 %> member(s)</p>
+      </div>
+
+      <% if (familyMembers && familyMembers.length > 0) { %>
+        <div class="family-links-grid">
+          <% familyMembers.forEach(member => { %>
+            <div class="family-link-card">
+              <div class="family-link-top">
+                <div>
+                  <h4><%= member.first_name %> <%= member.last_name %></h4>
+                  <p class="family-code"><%= member.patient_code %></p>
+                </div>
+
+                <span class="relationship-badge">
+                  <%= member.display_relationship || member.relationship || "Relative" %>
+                </span>
+              </div>
+
+              <div style="margin-bottom: 10px;">
+                <span class="blood-badge small-blood"><%= member.blood_type || "N/A" %></span>
+
+                <% if (member.priority_level) { %>
+                  <span class="priority-badge priority-<%= member.priority_level %>" style="margin-left:8px;">
+                    <%= member.priority_level.toUpperCase() %>
+                  </span>
+                <% } %>
+              </div>
+
+              <p><strong>Gender:</strong> <%= member.gender || "N/A" %></p>
+              <p><strong>Date of Birth:</strong> <%= member.date_of_birth || "N/A" %></p>
+              <p><strong>Risk Flags:</strong> <%= member.risk_flags || "None" %></p>
+              <p><strong>Diagnosis:</strong> <%= member.diagnosis || "N/A" %></p>
+              <p><strong>Chronic Conditions:</strong> <%= member.chronic_conditions || "None" %></p>
+              <p><strong>Emergency Summary:</strong> <%= member.emergency_summary || "No emergency summary available." %></p>
+
+              <div class="action-buttons" style="margin-top:12px;">
+
+                <form action="/remove-family-link/<%= member.id %>" method="POST" style="display:inline;">
+                  <input type="hidden" name="patientCode" value="<%= patient.patient_code %>" />
+                  <button type="submit" class="btn small-btn danger-btn">Remove</button>
+                </form>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <div class="empty-family">
+          <p>No family members are linked yet for this patient.</p>
+          <div class="action-buttons" style="margin-top: 15px;">
+            <a href="/register-patient" class="btn">Register New Patient</a>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </section>
+</main>
+
+<%- include("partials/footer") %>

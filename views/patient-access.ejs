@@ -1,0 +1,224 @@
+<%- include("partials/header") %>
+
+<main class="container wide-page-shell">
+  <% if (notice === "active-session-lock") { %>
+    <div class="alert-warning session-locked-banner">
+      End the current patient session before opening another patient.
+    </div>
+  <% } %>
+
+  <% if (notice === "directory-retired") { %>
+    <div class="alert-info session-locked-banner">
+      Patient search and patient list browsing were removed from the main workflow. Use this supervised access page instead.
+    </div>
+  <% } %>
+
+  <section class="page-header">
+    <h1>Patient Access</h1>
+
+  </section>
+
+  <% if (error) { %>
+    <div class="alert-error"><%= error %></div>
+  <% } %>
+
+  <% if (success) { %>
+    <div class="alert-success"><%= success %></div>
+  <% } %>
+
+
+
+  <% if (currentPatientSession) { %>
+    <section class="card patient-session-panel full-width-card">
+      <div class="results-header">
+        <div>
+          <h2>Current Supervised Patient Session</h2>
+          <p>The system is locked to this patient to preserve privacy.</p>
+        </div>
+        <span class="priority-badge priority-medium">Session active</span>
+      </div>
+
+      <div class="dashboard-flow-grid two-column-dashboard">
+        <div class="dashboard-mode-card">
+          <p><strong>Patient name:</strong> <%= currentPatientSession.full_name %></p>
+          <p><strong>Patient code:</strong> <%= currentPatientSession.patient_code %></p>
+          <p>To access another patient, end this session first.</p>
+        </div>
+        <div class="dashboard-mode-card">
+          <div class="action-buttons compact-buttons">
+            <a href="/patient-portal/<%= currentPatientSession.patient_code %>" class="btn">Open Full Record</a>
+            <a href="/edit-patient/<%= currentPatientSession.patient_code %>" class="btn secondary">Edit Record</a>
+            <a href="/patient-qr/<%= currentPatientSession.patient_code %>" class="btn secondary">QR Card</a>
+          </div>
+          <form action="/patient-access/logout" method="POST" class="form-toolbar">
+            <button type="submit" class="btn dark-btn">End Patient Session</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  <% } else { %>
+    <section class="split-auth-grid full-page-access-grid">
+      <article class="card full-width-card access-panel-card">
+        <div class="results-header">
+          <div>
+            <h2>Scan QR code or enter credentials to continue</h2>
+          </div>
+        </div>
+
+        <form action="/patient-access/password" method="POST" class="patient-form">
+          <div class="form-grid access-form-grid">
+            <div>
+              <label for="identifier">Patient Code or National ID</label>
+              <input type="text" id="identifier" name="identifier" placeholder="P-1001 or PAT1001" required />
+            </div>
+            <div>
+              <label for="password">Patient Password</label>
+              <input type="password" id="password" name="password" placeholder="PtA#6318zR" required />
+            </div>
+          </div>
+          <div class="form-toolbar">
+            <button type="submit" class="btn">Open Patient Record</button>
+          </div>
+        </form>
+      </article>
+
+      <input
+        type="text"
+        id="patientHiddenScannerInput"
+        class="scanner-ghost-input"
+        inputmode="text"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-hidden="true"
+      />
+
+      <form id="patientQrForm" action="/patient-access/qr" method="POST" style="display: none;">
+        <input type="hidden" id="patient_qr_value" name="qr_value" required />
+      </form>
+    </section>
+  <% } %>
+
+
+</main>
+
+<script>
+  (function () {
+    const scannerInput = document.getElementById("patientHiddenScannerInput");
+    const scannerPanel = document.getElementById("patientScannerPanel");
+    const armScannerBtn = document.getElementById("armPatientScannerBtn");
+    const patientQrStatus = document.getElementById("patientQrStatus");
+    const patientQrResult = document.getElementById("patientQrResult");
+    const patientQrInput = document.getElementById("patient_qr_value");
+    const patientQrForm = document.getElementById("patientQrForm");
+
+    if (!scannerInput || !patientQrInput || !patientQrForm) {
+      return;
+    }
+
+    let patientQrSubmitting = false;
+    let lastPatientQrValue = "";
+    let processTimer = null;
+
+    function setPatientQrStatus(message) {
+      if (patientQrStatus) patientQrStatus.textContent = message;
+    }
+
+    function setPatientQrResult(message) {
+      if (patientQrResult) patientQrResult.textContent = message;
+    }
+
+    function clearScannerTimer() {
+      if (processTimer) {
+        window.clearTimeout(processTimer);
+        processTimer = null;
+      }
+    }
+
+    function armScanner() {
+      if (patientQrSubmitting) return;
+      scannerInput.value = "";
+      scannerInput.focus();
+      scannerInput.select();
+      setPatientQrStatus("Scanner is armed. Scan the patient QR code now.");
+      setPatientQrResult("Waiting for scanner input...");
+    }
+
+    function scheduleProcessing() {
+      clearScannerTimer();
+      processTimer = window.setTimeout(function () {
+        submitPatientQrValue(scannerInput.value, "Scanner");
+      }, 150);
+    }
+
+    function submitPatientQrValue(rawValue, sourceLabel) {
+      const qrValue = (rawValue || "").trim();
+
+      if (!qrValue || patientQrSubmitting || qrValue === lastPatientQrValue) {
+        return;
+      }
+
+      lastPatientQrValue = qrValue;
+      patientQrSubmitting = true;
+      clearScannerTimer();
+
+      setPatientQrStatus(sourceLabel + " detected. Opening patient session...");
+      setPatientQrResult("Scanned value: " + qrValue);
+      patientQrInput.value = qrValue;
+
+      scannerInput.disabled = true;
+      if (armScannerBtn) armScannerBtn.disabled = true;
+
+      patientQrForm.submit();
+    }
+
+    scannerInput.addEventListener("focus", function () {
+      if (!patientQrSubmitting) {
+        setPatientQrStatus("Scanner is armed. Scan the patient QR code now.");
+      }
+    });
+
+    scannerInput.addEventListener("blur", function () {
+      if (!patientQrSubmitting) {
+        setPatientQrStatus("Scanner paused. Click Activate Scanner before scanning.");
+      }
+    });
+
+    scannerInput.addEventListener("input", function () {
+      if (patientQrSubmitting) return;
+      const currentValue = (scannerInput.value || "").trim();
+      setPatientQrResult(currentValue ? "Receiving scanner input: " + currentValue : "Waiting for scanner input...");
+      if (currentValue) {
+        scheduleProcessing();
+      }
+    });
+
+    scannerInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        submitPatientQrValue(scannerInput.value, "Scanner");
+      }
+    });
+
+    if (armScannerBtn) {
+      armScannerBtn.addEventListener("click", armScanner);
+    }
+
+    if (scannerPanel) {
+      scannerPanel.addEventListener("click", function (event) {
+        if (event.target && event.target.tagName === "BUTTON") return;
+        armScanner();
+      });
+      scannerPanel.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          armScanner();
+        }
+      });
+    }
+
+    window.setTimeout(armScanner, 200);
+  })();
+</script>
+
+<%- include("partials/footer") %>

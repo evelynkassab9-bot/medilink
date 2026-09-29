@@ -1,0 +1,200 @@
+<%- include("partials/header") %>
+
+<main class="container">
+  <section class="dashboard-section">
+    <div class="page-header">
+      <h2>Scan Patient Code</h2>
+      <p>
+        This page now works only with the hardware scanner. The visible USB input and the camera scanner were removed.
+      </p>
+    </div>
+
+    <div class="scanner-shell">
+      <div class="card scanner-card scanner-listener-panel">
+        <div class="scanner-listener-header">
+          <div>
+            <h3>Hardware scanner capture</h3>
+            <p>Click <strong>Activate scanner</strong> once if needed, then scan the QR code or barcode.</p>
+          </div>
+          <button id="armScanBtn" class="btn secondary" type="button">Activate Scanner</button>
+        </div>
+
+        <div class="scan-status-grid">
+          <div id="scannerStatus" class="scanner-status scanner-status-box">Scanner is ready. Scan a code to continue.</div>
+          <div id="scannerResult" class="scanner-result scanner-result-box">Waiting for scanned value...</div>
+        </div>
+
+        <input
+          type="text"
+          id="hiddenScanInput"
+          class="scanner-ghost-input"
+          inputmode="text"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          aria-hidden="true"
+        />
+      </div>
+
+      <div class="card">
+        <h3>Supported QR Content</h3>
+        <ol class="scanner-steps">
+          <li><code>PATIENT:P-0001</code></li>
+          <li><code>/patient-qr-login/P-0001</code></li>
+          <li><code>/patient-portal/P-0001</code></li>
+          <li><code>/emergency/P-0001</code></li>
+          <li><code>P-0001</code></li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>Hospital Workflow</h3>
+        <div class="demo-box" style="margin-top: 0;">
+          <p><strong>Generate QR:</strong> Patient QR page</p>
+          <p><strong>Scan QR:</strong> Hardware scanner on this page</p>
+          <p><strong>Open record:</strong> The system redirects automatically after a successful scan</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const armBtn = document.getElementById("armScanBtn");
+    const scanInput = document.getElementById("hiddenScanInput");
+    const statusBox = document.getElementById("scannerStatus");
+    const resultBox = document.getElementById("scannerResult");
+
+    let lastScannedText = "";
+    let redirecting = false;
+    let processTimer = null;
+
+    function setStatus(text, type = "") {
+      statusBox.className = "scanner-status scanner-status-box" + (type ? " " + type : "");
+      statusBox.textContent = text;
+    }
+
+    function setResult(text, type = "") {
+      resultBox.className = "scanner-result scanner-result-box" + (type ? " " + type : "");
+      resultBox.textContent = text;
+    }
+
+    function clearTimer() {
+      if (processTimer) {
+        window.clearTimeout(processTimer);
+        processTimer = null;
+      }
+    }
+
+    function armScanner() {
+      if (redirecting) return;
+      scanInput.value = "";
+      scanInput.focus();
+      scanInput.select();
+      setStatus("Scanner is armed. Scan the patient code now.", "neutral");
+      setResult("Waiting for scanned value...", "neutral");
+    }
+
+    function extractTargetFromScan(decodedText) {
+      const text = (decodedText || "").trim();
+
+      if (!text) return null;
+
+      if (/^https?:\/\//i.test(text)) {
+        const supportedPathMatch = text.match(/\/(patient-qr-login|emergency|room-view|patient-portal)\/([^/?#]+)/i);
+        if (supportedPathMatch && supportedPathMatch[1] && supportedPathMatch[2]) {
+          return "/" + supportedPathMatch[1] + "/" + encodeURIComponent(supportedPathMatch[2].trim().toUpperCase());
+        }
+        return text;
+      }
+
+      const patientPayloadMatch = text.match(/^PATIENT:([^/?#]+)$/i);
+      if (patientPayloadMatch && patientPayloadMatch[1]) {
+        return "/patient-qr-login/" + encodeURIComponent(patientPayloadMatch[1].trim().toUpperCase());
+      }
+
+      if (/^P-\d+$/i.test(text)) {
+        return "/patient-qr-login/" + encodeURIComponent(text.trim().toUpperCase());
+      }
+
+      const partialMatch = text.match(/(patient-qr-login|emergency|room-view|patient-portal)\/([^/?#]+)/i);
+      if (partialMatch && partialMatch[1] && partialMatch[2]) {
+        return "/" + partialMatch[1] + "/" + encodeURIComponent(partialMatch[2].trim().toUpperCase());
+      }
+
+      return null;
+    }
+
+    function processScannedValue(rawValue, sourceLabel) {
+      const decodedText = (rawValue || "").trim();
+
+      if (!decodedText || redirecting) {
+        return;
+      }
+
+      if (decodedText === lastScannedText) {
+        scanInput.select();
+        return;
+      }
+
+      lastScannedText = decodedText;
+      setResult("Scanned: " + decodedText, "success");
+
+      const target = extractTargetFromScan(decodedText);
+
+      if (!target) {
+        setStatus(sourceLabel + " detected, but content is not recognized by the system.", "error");
+        scanInput.value = "";
+        window.setTimeout(armScanner, 300);
+        return;
+      }
+
+      redirecting = true;
+      clearTimer();
+      setStatus(sourceLabel + " detected successfully. Opening patient page...", "success");
+      scanInput.disabled = true;
+      if (armBtn) armBtn.disabled = true;
+      window.location.replace(target);
+    }
+
+    scanInput.addEventListener("focus", function () {
+      if (!redirecting) {
+        setStatus("Scanner is armed. Scan the patient code now.", "neutral");
+      }
+    });
+
+    scanInput.addEventListener("blur", function () {
+      if (!redirecting) {
+        setStatus("Scanner paused. Click Activate Scanner before scanning.", "neutral");
+      }
+    });
+
+    scanInput.addEventListener("input", function () {
+      if (redirecting) return;
+      const currentValue = (scanInput.value || "").trim();
+      setResult(currentValue ? "Receiving scanner input: " + currentValue : "Waiting for scanned value...", "neutral");
+      if (currentValue) {
+        clearTimer();
+        processTimer = window.setTimeout(function () {
+          processScannedValue(scanInput.value, "Scanner");
+        }, 150);
+      }
+    });
+
+    scanInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        processScannedValue(scanInput.value, "Scanner");
+      }
+    });
+
+    if (armBtn) {
+      armBtn.addEventListener("click", armScanner);
+    }
+
+    window.setTimeout(armScanner, 200);
+  });
+</script>
+
+<%- include("partials/footer") %>

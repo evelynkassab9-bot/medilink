@@ -1,0 +1,149 @@
+<%- include("partials/header") %>
+
+<main class="container wide-page-shell">
+  <section class="page-header">
+    <h1>Edit Patient</h1>
+  </section>
+
+  <% if (error) { %>
+    <div class="alert-error"><%= error %></div>
+  <% } %>
+
+  <% if (success) { %>
+    <div class="alert-success"><%= success %></div>
+  <% } %>
+
+
+
+  <section class="form-card large-form-card full-width-card">
+    <form action="/edit-patient/<%= patient.patient_code %>" method="POST" class="patient-form professional-edit-form">
+      <h2>Patient Identity</h2>
+
+      <div class="form-grid edit-form-grid">
+        <div>
+          <label for="first_name">First Name</label>
+          <input type="text" id="first_name" name="first_name" value="<%= patient.first_name || "" %>" required />
+        </div>
+
+        <div>
+          <label for="last_name">Last Name</label>
+          <input type="text" id="last_name" name="last_name" value="<%= patient.last_name || "" %>" required />
+        </div>
+
+        <div>
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" value="<%= patient.email || "" %>" required />
+        </div>
+
+        <div>
+          <label for="national_id">National ID</label>
+          <input type="text" id="national_id" name="national_id" value="<%= patient.national_id || "" %>" required />
+        </div>
+
+        <div>
+          <label for="gender">Gender</label>
+          <select id="gender" name="gender" required>
+            <option value="">Select gender</option>
+            <option value="Male" <%= patient.gender === "Male" ? "selected" : "" %>>Male</option>
+            <option value="Female" <%= patient.gender === "Female" ? "selected" : "" %>>Female</option>
+            <option value="Other" <%= patient.gender === "Other" ? "selected" : "" %>>Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="date_of_birth">Date of Birth</label>
+          <input type="date" id="date_of_birth" name="date_of_birth" value="<%= formattedDob || "" %>" required />
+        </div>
+
+        <div>
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" name="phone" value="<%= patient.phone || "" %>" placeholder="+96170123456" pattern="^\+961\d{7,8}$" inputmode="tel" />
+        </div>
+
+        <div>
+          <label for="blood_type">Blood Type</label>
+          <select id="blood_type" name="blood_type" required>
+            <option value="">Select blood type</option>
+            <% ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].forEach((type) => { %>
+              <option value="<%= type %>" <%= patient.blood_type === type ? "selected" : "" %>><%= type %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="full-width">
+          <label for="address">Address</label>
+          <textarea id="address" name="address" rows="2"><%= patient.address || "" %></textarea>
+        </div>
+
+        <div>
+          <label for="emergency_contact_name">Emergency Contact Name</label>
+          <input type="text" id="emergency_contact_name" name="emergency_contact_name" value="<%= patient.emergency_contact_name || "" %>" required />
+        </div>
+
+        <div>
+          <label for="emergency_contact_phone">Emergency Contact Phone</label>
+          <input type="tel" id="emergency_contact_phone" name="emergency_contact_phone" value="<%= patient.emergency_contact_phone || "" %>" placeholder="+96171111222" pattern="^\+961\d{7,8}$" inputmode="tel" required />
+        </div>
+      </div>
+
+      <h2 style="margin-top: 2rem;">Medical Record</h2>
+
+      <div class="form-grid edit-form-grid">
+        <div class="full-width">
+          <label for="diagnosis">Diagnosis</label>
+          <textarea id="diagnosis" name="diagnosis" rows="3"><%= patient.diagnosis || "" %></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="allergies">Allergies</label>
+          <textarea id="allergies" name="allergies" rows="3"><%= patient.allergies || "" %></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="medications">Medications</label>
+          <textarea id="medications" name="medications" rows="3"><%= patient.medications || "" %></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="chronic_conditions">Chronic Conditions</label>
+          <textarea id="chronic_conditions" name="chronic_conditions" rows="3"><%= patient.chronic_conditions || "" %></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="notes">Clinical Notes</label>
+          <textarea id="notes" name="notes" rows="4"><%= patient.notes || "" %></textarea>
+        </div>
+      </div>
+
+      <h2 style="margin-top: 2rem;">Emergency Information</h2>
+
+      <div class="form-grid edit-form-grid">
+        <div class="full-width">
+          <label for="emergency_summary">Emergency Summary</label>
+          <textarea id="emergency_summary" name="emergency_summary" rows="4"><%= patient.emergency_summary || "" %></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="risk_flags">Risk Flags</label>
+          <textarea id="risk_flags" name="risk_flags" rows="3"><%= patient.risk_flags || "" %></textarea>
+        </div>
+
+        <div>
+          <label for="priority_level">Priority Level</label>
+          <select id="priority_level" name="priority_level">
+            <option value="low" <%= patient.priority_level === "low" ? "selected" : "" %>>Low</option>
+            <option value="medium" <%= !patient.priority_level || patient.priority_level === "medium" ? "selected" : "" %>>Medium</option>
+            <option value="high" <%= patient.priority_level === "high" ? "selected" : "" %>>High</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="page-actions professional-page-actions" style="margin-top: 2rem;">
+        <button type="submit" class="btn">Save Changes</button>
+        <a href="/patient-portal/<%= patient.patient_code %>" class="btn btn-secondary">Open Patient Portal</a>
+      </div>
+    </form>
+  </section>
+</main>
+
+<%- include("partials/footer") %>

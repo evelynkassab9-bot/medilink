@@ -1,0 +1,24 @@
+{
+  "name": "medilink-emergency-medical-system",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node scripts/start.js mysql",
+    "start:sqlite": "node scripts/start.js sqlite",
+    "start:mysql": "node scripts/start.js mysql",
+    "check-db": "node scripts/check-db.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "mysql2": "^3.22.3",
+    "ngrok": "^4.3.3",
+    "qrcode": "^1.5.4",
+    "sqlite3": "^5.1.7",
+    "tesseract.js": "^5.1.1"
+  }
+}

@@ -1,0 +1,166 @@
+<%- include("partials/header") %>
+
+<main class="container wide-page-shell">
+  <section class="form-section">
+    <div class="form-card large-form-card full-width-card">
+      <div class="page-header">
+        <h2>Register New Patient</h2>
+
+      </div>
+
+      <% if (error) { %>
+        <div class="alert-error"><%= error %></div>
+      <% } %>
+
+      <% if (success) { %>
+        <div class="alert-success"><%= success %></div>
+      <% } %>
+
+
+
+      <% if (generatedCredentials) { %>
+        <div class="card credential-summary-card" style="margin-bottom: 20px; border-left: 4px solid #198754;">
+          <h3>Generated Patient Credentials</h3>
+          <p><strong>Patient Code:</strong> <%= generatedCredentials.patient_code %></p>
+          <p><strong>National ID:</strong> <%= generatedCredentials.national_id %></p>
+          <p><strong>Generated Password:</strong> <%= generatedCredentials.generated_password %></p>
+          <% if (generatedCredentials.qr_page) { %>
+            <p><a href="<%= generatedCredentials.qr_page %>" class="btn">Open Patient QR Page</a></p>
+          <% } %>
+        </div>
+      <% } %>
+
+      <form action="/register-patient" method="POST" class="login-form">
+        <h3 class="section-title">Account Information</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="first_name">First Name *</label>
+            <input type="text" id="first_name" name="first_name" value="<%= formData.first_name || '' %>" required />
+          </div>
+
+          <div class="form-group">
+            <label for="last_name">Last Name *</label>
+            <input type="text" id="last_name" name="last_name" value="<%= formData.last_name || '' %>" required />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" value="<%= formData.email || '' %>" required />
+          </div>
+
+
+
+
+          <div class="form-group">
+            <label for="gender">Gender *</label>
+            <select id="gender" name="gender" required>
+              <option value="">Select gender</option>
+              <option value="Male" <%= formData.gender === "Male" ? "selected" : "" %>>Male</option>
+              <option value="Female" <%= formData.gender === "Female" ? "selected" : "" %>>Female</option>
+              <option value="Other" <%= formData.gender === "Other" ? "selected" : "" %>>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <h3 class="section-title">Patient Profile</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="date_of_birth">Date of Birth *</label>
+            <input type="date" id="date_of_birth" name="date_of_birth" value="<%= formData.date_of_birth || '' %>" required />
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone" value="<%= formData.phone || '' %>" placeholder="+96170123456" pattern="^\+961\d{7,8}$" inputmode="tel" />
+          </div>
+
+          <div class="form-group">
+            <label for="blood_type">Blood Type *</label>
+            <select id="blood_type" name="blood_type" required>
+              <option value="">Select blood type</option>
+              <option value="A+" <%= formData.blood_type === "A+" ? "selected" : "" %>>A+</option>
+              <option value="A-" <%= formData.blood_type === "A-" ? "selected" : "" %>>A-</option>
+              <option value="B+" <%= formData.blood_type === "B+" ? "selected" : "" %>>B+</option>
+              <option value="B-" <%= formData.blood_type === "B-" ? "selected" : "" %>>B-</option>
+              <option value="AB+" <%= formData.blood_type === "AB+" ? "selected" : "" %>>AB+</option>
+              <option value="AB-" <%= formData.blood_type === "AB-" ? "selected" : "" %>>AB-</option>
+              <option value="O+" <%= formData.blood_type === "O+" ? "selected" : "" %>>O+</option>
+              <option value="O-" <%= formData.blood_type === "O-" ? "selected" : "" %>>O-</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address" value="<%= formData.address || '' %>" />
+          </div>
+
+          <div class="form-group">
+            <label for="emergency_contact_name">Emergency Contact Name *</label>
+            <input type="text" id="emergency_contact_name" name="emergency_contact_name" value="<%= formData.emergency_contact_name || '' %>" required />
+          </div>
+
+          <div class="form-group">
+            <label for="emergency_contact_phone">Emergency Contact Phone *</label>
+            <input type="tel" id="emergency_contact_phone" name="emergency_contact_phone" value="<%= formData.emergency_contact_phone || '' %>" placeholder="+96171111222" pattern="^\+961\d{7,8}$" inputmode="tel" required />
+          </div>
+        </div>
+
+        <h3 class="section-title">Medical Information</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="diagnosis">Diagnosis</label>
+            <input type="text" id="diagnosis" name="diagnosis" value="<%= formData.diagnosis || '' %>" />
+          </div>
+
+          <div class="form-group">
+            <label for="allergies">Allergies</label>
+            <input type="text" id="allergies" name="allergies" value="<%= formData.allergies || '' %>" />
+          </div>
+
+          <div class="form-group">
+            <label for="medications">Medications</label>
+            <input type="text" id="medications" name="medications" value="<%= formData.medications || '' %>" />
+          </div>
+
+          <div class="form-group">
+            <label for="chronic_conditions">Chronic Conditions</label>
+            <input type="text" id="chronic_conditions" name="chronic_conditions" value="<%= formData.chronic_conditions || '' %>" />
+          </div>
+
+          <div class="form-group full-span">
+            <label for="notes">Clinical Notes</label>
+            <textarea id="notes" name="notes" rows="4"><%= formData.notes || '' %></textarea>
+          </div>
+        </div>
+
+        <h3 class="section-title">Emergency Quick View</h3>
+        <div class="form-grid">
+          <div class="form-group full-span">
+            <label for="emergency_summary">Emergency Summary</label>
+            <textarea id="emergency_summary" name="emergency_summary" rows="4"><%= formData.emergency_summary || '' %></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="risk_flags">Risk Flags</label>
+            <input type="text" id="risk_flags" name="risk_flags" value="<%= formData.risk_flags || '' %>" />
+          </div>
+
+          <div class="form-group">
+            <label for="priority_level">Priority Level</label>
+            <select id="priority_level" name="priority_level">
+              <option value="low" <%= formData.priority_level === "low" ? "selected" : "" %>>Low</option>
+              <option value="medium" <%= !formData.priority_level || formData.priority_level === "medium" ? "selected" : "" %>>Medium</option>
+              <option value="high" <%= formData.priority_level === "high" ? "selected" : "" %>>High</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="action-buttons" style="margin-top: 24px;">
+          <button type="submit" class="btn full-width">Register Patient</button>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<%- include("partials/footer") %>

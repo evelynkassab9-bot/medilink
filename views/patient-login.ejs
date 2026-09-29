@@ -1,0 +1,63 @@
+<%- include("partials/header") %>
+
+<main class="container">
+  <section class="page-header centered-page-header">
+    <h1>Patient Login</h1>
+    <p>
+      Sign in with your patient ID or national ID and password to view your medical record. This portal is read-only, so no record changes can be made here.
+    </p>
+  </section>
+
+  <section class="form-section">
+    <div class="form-card login-card-pro">
+      <h2>Access your medical record</h2>
+      <p class="form-description">
+        Use the patient code given by the hospital or your registered national ID together with your password.
+      </p>
+
+      <% if (error) { %>
+        <div class="alert-error"><%= error %></div>
+      <% } %>
+
+      <form action="/patient-login" method="POST" class="login-form">
+        <label for="identifier">Patient Code or National ID</label>
+        <input
+          type="text"
+          id="identifier"
+          name="identifier"
+          placeholder="Example: P-1001 or PAT1001"
+          required
+        />
+
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Enter your password"
+          required
+        />
+
+        <button type="submit" class="btn full-width">Open My Medical Record</button>
+      </form>
+
+      <div class="workflow-strip">
+        <span>1. Patient login</span>
+        <span>2. Read-only record</span>
+        <span>3. Logout securely</span>
+      </div>
+
+      <div class="info-box" style="margin-top: 1.5rem;">
+        <h3>Important</h3>
+        <p>
+          This page is only for viewing your own record. Editing, deleting, or updating medical data is not available here.
+        </p>
+        <p>
+          After login, you can use the built-in chatbot to search your record, get summaries, and understand the information shown in the portal.
+        </p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include("partials/footer") %>

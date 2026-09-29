@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="emergency-body">
+
+  <div class="emergency-wrapper">
+
+    <% if (error || !patient) { %>
+      <div class="emergency-error">
+        <h1>⚠️ Patient Not Found</h1>
+        <p><%= error || "No data available for this QR code." %></p>
+      </div>
+
+    <% } else { %>
+
+      <div class="emergency-header">
+        <div class="emergency-logo">🏥 EMERGENCY ACCESS</div>
+        <div class="priority-badge priority-<%= patient.priority_level || 'medium' %>">
+          🚨 Priority: <%= (patient.priority_level || "medium").toUpperCase() %>
+        </div>
+      </div>
+
+      <div class="emergency-grid">
+
+        <div class="e-card identity-card">
+          <h2>👤 Patient Identity</h2>
+          <p class="big-name"><%= patient.first_name %> <%= patient.last_name %></p>
+          <div class="e-row"><span>Patient Code</span><strong><%= patient.patient_code %></strong></div>
+          <div class="e-row"><span>Gender</span><strong><%= patient.gender %></strong></div>
+          <div class="e-row"><span>Date of Birth</span><strong><%= patient.date_of_birth %></strong></div>
+          <div class="e-row">
+            <span>Blood Type</span>
+            <strong class="blood-badge large-blood"><%= patient.blood_type %></strong>
+          </div>
+        </div>
+
+        <div class="e-card summary-card">
+          <h2>⚠️ Emergency Summary</h2>
+          <p class="emergency-summary-text">
+            <%= patient.emergency_summary || "No emergency summary on file." %>
+          </p>
+          <div class="risk-flags-box">
+            <h3>Risk Flags</h3>
+            <% if (patient.risk_flags) { %>
+              <% patient.risk_flags.split(",").forEach(flag => { %>
+                <span class="risk-tag"><%= flag.trim() %></span>
+              <% }) %>
+            <% } else { %>
+              <span class="risk-tag safe-tag">No specific flags</span>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="e-card medical-card">
+          <h2>💊 Medical Information</h2>
+          <div class="e-row"><span>Diagnosis</span><strong><%= patient.diagnosis || "N/A" %></strong></div>
+          <div class="e-row">
+            <span>Allergies</span>
+            <strong class="allergy-text"><%= patient.allergies || "None known" %></strong>
+          </div>
+          <div class="e-row"><span>Medications</span><strong><%= patient.medications || "None" %></strong></div>
+          <div class="e-row"><span>Chronic Conditions</span><strong><%= patient.chronic_conditions || "None" %></strong></div>
+          <div class="e-row"><span>Last Visit</span><strong><%= patient.last_visit_date || "N/A" %></strong></div>
+          <div class="e-row"><span>Doctor</span><strong><%= patient.doctor_name || "N/A" %></strong></div>
+        </div>
+
+        <div class="e-card contact-card">
+          <h2>📞 Emergency Contact</h2>
+          <div class="e-row">
+            <span>Name</span><strong><%= patient.emergency_contact_name %></strong>
+          </div>
+          <div class="e-row">
+            <span>Phone</span>
+            <strong class="phone-big"><%= patient.emergency_contact_phone %></strong>
+          </div>
+          <% if (patient.notes) { %>
+            <div class="clinical-notes">
+              <h3>Clinical Notes</h3>
+              <p><%= patient.notes %></p>
+            </div>
+          <% } %>
+        </div>
+
+      </div>
+
+      <%# ── Family Members on Emergency View ── %>
+      <% if (familyMembers && familyMembers.length > 0) { %>
+        <div class="emergency-family-section">
+          <h2>👨‍👩‍👧 Linked Family Members
+            <span style="font-size:0.85rem; color:#74c0fc; margin-left:8px">
+              (may share inherited risk conditions)
+            </span>
+          </h2>
+          <div class="e-family-grid">
+            <% familyMembers.forEach(member => { %>
+              <div class="e-family-card">
+                <div class="member-name"><%= member.first_name %> <%= member.last_name %></div>
+                <div class="member-rel"><%= member.relationship %></div>
+                <div class="e-row">
+                  <span>Blood</span>
+                  <strong class="blood-badge small-blood"><%= member.blood_type %></strong>
+                </div>
+                <% if (member.risk_flags && member.risk_flags !== "None") { %>
+                  <div class="e-row">
+                    <span>Risks</span>
+                    <strong class="risk-inline" style="font-size:0.8rem; color:#ff9999">
+                      <%= member.risk_flags %>
+                    </strong>
+                  </div>
+                <% } %>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      <% } %>
+
+      <div class="emergency-footer">
+        <p>🏥 Smart Web-Based Emergency Medical Record System &nbsp;|&nbsp; Authorized medical use only.</p>
+        <p>Patient: <strong><%= patient.patient_code %></strong> &nbsp;|&nbsp; Accessed: <%= new Date().toLocaleString() %></p>
+      </div>
+
+    <% } %>
+
+  </div>
+
+</body>
+</html>

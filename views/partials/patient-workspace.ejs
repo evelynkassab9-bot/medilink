@@ -1,0 +1,108 @@
+<%
+  const workspacePatient = typeof patient !== "undefined" && patient
+    ? patient
+    : (typeof patientData !== "undefined" ? patientData : null);
+  const workspaceFamilyCount = typeof familyCount === "number"
+    ? familyCount
+    : (Array.isArray(familyMembers) ? familyMembers.length : 0);
+  const workspaceActiveTab = typeof activeTab !== "undefined" ? activeTab : "";
+  const workspaceTitleText = typeof workspaceTitle !== "undefined"
+    ? workspaceTitle
+    : "Patient workspace";
+  const workspaceDescriptionText = typeof workspaceDescription !== "undefined"
+    ? workspaceDescription
+    : "Review the patient record from one clean workspace.";
+  const workspacePriority = (workspacePatient && workspacePatient.priority_level
+    ? String(workspacePatient.priority_level).toLowerCase()
+    : "medium");
+  const sessionPatient = typeof currentPatient !== "undefined" ? currentPatient : null;
+  const sessionMatchesCurrent = !!(
+    sessionPatient &&
+    workspacePatient &&
+    sessionPatient.patient_code === workspacePatient.patient_code
+  );
+  const staffAccess = !!(
+    typeof currentStaff !== "undefined" &&
+    currentStaff &&
+    sessionMatchesCurrent
+  );
+  const accessEntryPath = "/patient-access";
+%>
+
+<% if (workspacePatient) { %>
+  <section class="patient-workspace-card">
+    <div class="patient-workspace-main">
+      <span class="workspace-kicker"><%= workspaceTitleText %></span>
+      <h2><%= workspacePatient.first_name %> <%= workspacePatient.last_name %></h2>
+      <p class="workspace-description"><%= workspaceDescriptionText %></p>
+
+      <div class="patient-workspace-badges">
+        <span class="workspace-badge">Code <strong><%= workspacePatient.patient_code %></strong></span>
+        <span class="workspace-badge">Blood <strong><%= workspacePatient.blood_type || "N/A" %></strong></span>
+        <span class="workspace-badge">Family Links <strong><%= workspaceFamilyCount %></strong></span>
+        <span class="workspace-badge">
+          Session
+          <strong><%= sessionMatchesCurrent ? "Authenticated" : "Preview" %></strong>
+        </span>
+        <span class="priority-badge priority-<%= workspacePriority %>"><%= workspacePriority.toUpperCase() %> priority</span>
+      </div>
+
+      <div class="workspace-summary-grid">
+        <div class="workspace-summary-item">
+          <span>Diagnosis</span>
+          <strong><%= workspacePatient.diagnosis || "No diagnosis recorded" %></strong>
+        </div>
+        <div class="workspace-summary-item">
+          <span>Allergies</span>
+          <strong><%= workspacePatient.allergies || "None recorded" %></strong>
+        </div>
+        <div class="workspace-summary-item">
+          <span>Risk Flags</span>
+          <strong><%= workspacePatient.risk_flags || "None" %></strong>
+        </div>
+        <div class="workspace-summary-item">
+          <span>Emergency Contact</span>
+          <strong><%= workspacePatient.emergency_contact_name || "Not recorded" %></strong>
+        </div>
+      </div>
+    </div>
+
+    <aside class="patient-workspace-side">
+      <div class="patient-workspace-actions">
+        <% if (sessionMatchesCurrent && workspaceActiveTab !== "portal") { %>
+          <a href="/patient-portal/<%= workspacePatient.patient_code %>" class="btn">Open Full Record</a>
+        <% } %>
+
+        <a href="/patient-qr/<%= workspacePatient.patient_code %>" class="btn btn-secondary">QR Card</a>
+
+        <% if (staffAccess) { %>
+          <a href="/edit-patient/<%= workspacePatient.patient_code %>" class="btn btn-secondary">Edit Record</a>
+          <a href="/family-links/<%= workspacePatient.patient_code %>" class="btn btn-secondary">Family Links</a>
+          <a href="/risk-assessment/<%= workspacePatient.patient_code %>" class="btn btn-secondary">Risk Assessment</a>
+          <a href="/room-view/<%= workspacePatient.patient_code %>" target="_blank" class="btn room-btn">Room View</a>
+        <% } %>
+      </div>
+
+      <% if (!sessionMatchesCurrent) { %>
+        <div class="workspace-note-box">
+          <strong>Record access</strong>
+          <p>
+            Open the patient record from the supervised patient access page before entering the full portal.
+          </p>
+          <a href="<%= accessEntryPath %>" class="workspace-note-link">Open Patient Access</a>
+        </div>
+      <% } %>
+    </aside>
+  </section>
+
+  <nav class="patient-tab-nav" aria-label="Patient workspace navigation">
+    <% if (sessionMatchesCurrent) { %>
+    <% } else { %>
+      <a href="<%= accessEntryPath %>" class="<%= workspaceActiveTab === 'portal' ? 'active' : '' %>">Access</a>
+    <% } %>
+
+
+    <% if (staffAccess) { %>
+    <% } %>
+  </nav>
+<% } %>

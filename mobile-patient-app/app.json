@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Patient Medical Record",
+    "slug": "patient-medical-record",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.smartmedical.patientapp"
+    },
+    "android": {
+      "package": "com.smartmedical.patientapp"
+    }
+  }
+}

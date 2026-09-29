@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title || "MediLink Patient App Login" %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #0f172a 0%, #0f4c81 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app-login-shell {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .app-login-card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+    }
+
+    .app-login-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .app-login-brand img {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      background: #eff6ff;
+      padding: 8px;
+    }
+
+    .app-login-brand h1 {
+      margin: 0;
+      font-size: 1.7rem;
+      color: #0f172a;
+    }
+
+    .app-login-brand p {
+      margin: 0.35rem 0 0;
+      color: #475569;
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .app-login-note {
+      margin-top: 1.25rem;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: #eff6ff;
+      color: #0f4c81;
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .app-login-footer {
+      margin-top: 1rem;
+      color: #cbd5e1;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="app-login-shell">
+    <section class="app-login-card">
+      <div class="app-login-brand">
+        <img src="/images/medilink-logo.svg" alt="MediLink logo" />
+        <div>
+          <h1>Patient App Login</h1>
+        </div>
+      </div>
+
+      <% if (error) { %>
+        <div class="alert-error"><%= error %></div>
+      <% } %>
+
+      <form action="/app/patient-login" method="POST" class="login-form">
+        <label for="identifier">Patient ID or National ID</label>
+        <input
+          type="text"
+          id="identifier"
+          name="identifier"
+          placeholder="Example: P-1001 or national ID"
+          required
+        />
+
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Enter your password"
+          required
+        />
+
+        <button type="submit" class="btn full-width">Open My Medical Record</button>
+      </form>
+
+    </section>
+
+    <p class="app-login-footer">MediLink Patient App</p>
+  </main>
+</body>
+</html>

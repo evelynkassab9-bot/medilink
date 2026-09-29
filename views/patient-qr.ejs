@@ -1,0 +1,133 @@
+<%- include("partials/header") %>
+
+<%
+  const sessionMatchesCurrent = currentPatient && currentPatient.patient_code === patient.patient_code;
+%>
+
+<main class="container">
+  <% if (notice === "qr-static") { %>
+    <div class="alert-info session-locked-banner">
+      This QR code stays fixed for the patient record. Regenerating it is not needed in the current workflow.
+    </div>
+  <% } %>
+
+  <section class="page-header">
+    <h1>Patient QR Card</h1>
+
+  </section>
+
+  <%- include("partials/patient-workspace", {
+    patient,
+    familyMembers,
+    activeTab: "qr",
+    workspaceTitle: "QR access workspace",
+    workspaceDescription: ""
+  }) %>
+
+  <section class="qr-section compact-qr-section">
+    <div class="qr-card">
+      <div class="qr-card-body qr-card-body-compact">
+        <div class="qr-image-box">
+  
+
+          <% if (patient && patient.qr_code && patient.qr_code.startsWith("/qrcodes/")) { %>
+            <img src="<%= patient.qr_code %>" alt="QR Code for <%= patient.patient_code %>" class="qr-image" />
+          <% } else { %>
+            <div class="qr-placeholder">QR Not Generated</div>
+          <% } %>
+
+          <p class="qr-label"><%= patient.patient_code %></p>
+        </div>
+
+        <div class="qr-info-box compact-qr-info">
+          <div class="card-section-block">
+            <h3>Emergency essentials</h3>
+            <table class="info-table">
+              <tr>
+                <th>Patient</th>
+                <td><%= patient.first_name %> <%= patient.last_name %></td>
+              </tr>
+              <tr>
+                <th>Blood Type</th>
+                <td><span class="blood-badge"><%= patient.blood_type || "N/A" %></span></td>
+              </tr>
+              <tr>
+                <th>Priority</th>
+                <td>
+                  <span class="priority-badge priority-<%= patient.priority_level || 'medium' %>">
+                    <%= (patient.priority_level || "medium").toUpperCase() %>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <th>Risk Flags</th>
+                <td><%= patient.risk_flags || "None" %></td>
+              </tr>
+              <tr>
+                <th>Emergency Summary</th>
+                <td><%= patient.emergency_summary || "No emergency summary available." %></td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="card-section-block">
+            <h3>Emergency contact</h3>
+            <table class="info-table">
+              <tr>
+                <th>Name</th>
+                <td><%= patient.emergency_contact_name || "N/A" %></td>
+              </tr>
+              <tr>
+                <th>Phone</th>
+                <td><%= patient.emergency_contact_phone || "N/A" %></td>
+              </tr>
+              <tr>
+                <th>Primary Allergies</th>
+                <td><%= patient.allergies || "None recorded" %></td>
+              </tr>
+            </table>
+          </div>
+
+          <% if (riskAssessment) { %>
+            <div class="card-section-block">
+              <h3>Inherited risk snapshot</h3>
+              <table class="info-table">
+                <tr>
+                  <th>Overview</th>
+                  <td><%= riskAssessment.overview || "No inherited risk summary available." %></td>
+                </tr>
+                <tr>
+                  <th>Alerts</th>
+                  <td><%= riskAssessment.alert_count || 0 %></td>
+                </tr>
+                <tr>
+                  <th>Highest Level</th>
+                  <td>
+                    <% if (riskAssessment.highest_level && riskAssessment.highest_level !== "none") { %>
+                      <span class="priority-badge priority-<%= riskAssessment.highest_level %>">
+                        <%= riskAssessment.highest_level.toUpperCase() %>
+                      </span>
+                    <% } else { %>
+                      None
+                    <% } %>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          <% } %>
+
+          <div class="qr-actions">
+            <% if (sessionMatchesCurrent) { %>
+            <% } else { %>
+              <a href="/patient-access" class="btn">Patient Access</a>
+            <% } %>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include("partials/footer") %>

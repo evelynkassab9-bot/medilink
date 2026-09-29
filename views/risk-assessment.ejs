@@ -1,0 +1,115 @@
+<%- include("partials/header") %>
+
+<%
+  const sessionMatchesCurrent = currentPatient && currentPatient.patient_code === patient.patient_code;
+%>
+
+<main class="container">
+  <section class="page-header">
+    <h1>Inherited Risk Assessment</h1>
+
+  </section>
+
+  <%- include("partials/patient-workspace", {
+    patient,
+    familyMembers,
+    activeTab: "risk",
+    workspaceTitle: "Risk review workspace",
+    workspaceDescription: ""
+  }) %>
+
+
+
+  <section class="grid-two portal-focus-grid" style="margin-top: 1.5rem;">
+    <div class="card">
+      <h2>Assessment Overview</h2>
+
+      <% if (riskAssessment) { %>
+        <div class="details-grid">
+          <div><strong>Overview:</strong> <%= riskAssessment.overview %></div>
+          <div><strong>Highest Risk Level:</strong> <%= riskAssessment.highest_level %></div>
+          <div><strong>Alert Count:</strong> <%= riskAssessment.alert_count %></div>
+          <div><strong>Hereditary Score:</strong> <%= riskAssessment.hereditary_score %></div>
+        </div>
+      <% } else { %>
+        <p>No risk assessment data available.</p>
+      <% } %>
+    </div>
+
+    <div class="card">
+      <h2>Clinical Signals Used</h2>
+      <div class="record-block record-block-spaced">
+        <p><strong>Diagnosis:</strong> <%= patient.diagnosis || "N/A" %></p>
+        <p><strong>Chronic Conditions:</strong> <%= patient.chronic_conditions || "N/A" %></p>
+        <p><strong>Risk Flags:</strong> <%= patient.risk_flags || "None" %></p>
+        <p><strong>Emergency Priority:</strong> <%= patient.priority_level || "medium" %></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top: 1.5rem;">
+    <h2>Risk Alerts</h2>
+
+    <% if (riskAssessment && riskAssessment.alerts && riskAssessment.alerts.length > 0) { %>
+      <div class="alerts-list">
+        <% riskAssessment.alerts.forEach((alert) => { %>
+          <div class="alert-card alert-<%= alert.level %>">
+            <h3><%= alert.condition %> — <%= alert.level.toUpperCase() %></h3>
+            <p><strong>Summary:</strong> <%= alert.summary %></p>
+            <p><strong>Recommendation:</strong> <%= alert.recommendation %></p>
+            <p><strong>Relative Count:</strong> <%= alert.relative_count %></p>
+            <p><strong>Evidence:</strong> <%= alert.evidence_text %></p>
+
+
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <p>No inherited alerts detected from the current family links.</p>
+    <% } %>
+  </section>
+
+  <section class="card" style="margin-top: 1.5rem;">
+    <h2>Linked Family Members</h2>
+
+    <% if (familyMembers && familyMembers.length > 0) { %>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Patient Code</th>
+              <th>Full Name</th>
+              <th>Relationship</th>
+              <th>Diagnosis</th>
+              <th>Chronic Conditions</th>
+              <th>Risk Flags</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% familyMembers.forEach((member) => { %>
+              <tr>
+                <td><%= member.patient_code %></td>
+                <td><%= member.first_name %> <%= member.last_name %></td>
+                <td><%= member.display_relationship || member.relationship || "Relative" %></td>
+                <td><%= member.diagnosis || "N/A" %></td>
+                <td><%= member.chronic_conditions || "N/A" %></td>
+                <td><%= member.risk_flags || "None" %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <p>No linked family members available for this patient.</p>
+    <% } %>
+  </section>
+
+  <section class="page-actions" style="margin-top: 1.5rem;">
+    <% if (sessionMatchesCurrent) { %>
+    <% } else { %>
+      <a href="/patient-access" class="btn">Patient Access</a>
+    <% } %>
+  </section>
+</main>
+
+<%- include("partials/footer") %>

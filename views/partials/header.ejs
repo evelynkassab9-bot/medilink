@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title || "MediLink: Smart Emergency Medical Record System" %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <%
+    const staff =
+      typeof currentStaff !== "undefined"
+        ? currentStaff
+        : (
+            typeof currentUser !== "undefined" &&
+            currentUser &&
+            (currentUser.role === "staff" || currentUser.role === "admin")
+          )
+        ? currentUser
+        : null;
+
+    const patientSession = typeof currentPatient !== "undefined" ? currentPatient : null;
+    const patientUser = typeof currentPatientUser !== "undefined" ? currentPatientUser : null;
+  %>
+
+  <header class="main-header">
+    <div class="container header-shell">
+      <div class="brand-lockup brand-lockup-pro">
+        <img src="/images/medilink-logo.svg" alt="MediLink logo" class="brand-logo" />
+        <div>
+          <h1>MediLink: Smart Emergency Medical Record System</h1>
+
+        </div>
+      </div>
+
+      <% if (staff && !patientSession) { %>
+        <nav class="nav-menu" aria-label="Primary navigation">
+          <a href="/register-patient">Register Patient</a>
+          <a href="/logout">Logout</a>
+        </nav>
+      <% } else if (staff && patientSession) { %>
+        <nav class="nav-menu" aria-label="Patient workspace navigation">
+          <a href="/logout">Logout</a>
+        </nav>
+      <% } else if (patientUser && patientSession) { %>
+        <nav class="nav-menu" aria-label="Patient navigation">
+        </nav>
+      <% } else { %>
+        <nav class="nav-menu" aria-label="Public navigation">
+        </nav>
+      <% } %>
+    </div>
+
+    <% if (staff) { %>
+      <div class="container">
+        <div class="header-session-bar">
+          <div class="header-session-flex">
+            <div class="header-session-left">
+              <span class="header-pill">
+                <strong>Staff</strong>
+                <span><%= staff.full_name %> · <%= staff.role %></span>
+              </span>
+
+              <% if (staff.national_id) { %>
+                <span class="header-pill subtle">ID <strong><%= staff.national_id %></strong></span>
+              <% } %>
+
+              <% if (patientSession) { %>
+                <span class="header-pill accent">
+                  Active patient session <strong><%= patientSession.full_name %></strong> · <%= patientSession.patient_code %>
+                </span>
+              <% } else { %>
+                <span class="header-pill subtle">No patient record is currently open</span>
+              <% } %>
+            </div>
+
+            <div class="header-session-right">
+              <% if (patientSession) { %>
+                <a href="/patient-portal/<%= patientSession.patient_code %>" class="header-session-link">Open Full Record</a>
+                <form action="/patient-access/logout" method="POST" class="header-session-form">
+                  <button type="submit">End Patient Session</button>
+                </form>
+              <% } else { %>
+                <a href="/patient-access" class="header-session-link">Start Patient Session</a>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } else if (patientUser && patientSession) { %>
+      <div class="container">
+        <div class="header-session-bar">
+          <div class="header-session-flex">
+            <div class="header-session-left">
+              <span class="header-pill">
+                <strong>Patient</strong>
+                <span><%= patientUser.full_name %></span>
+              </span>
+              <% if (patientUser.national_id) { %>
+                <span class="header-pill subtle">ID <strong><%= patientUser.national_id %></strong></span>
+              <% } %>
+              <span class="header-pill accent">
+                Record <strong><%= patientSession.patient_code %></strong>
+              </span>
+            </div>
+
+            <div class="header-session-right">
+              <a href="/logout" class="header-session-link">Logout</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </header>

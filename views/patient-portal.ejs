@@ -1,0 +1,309 @@
+<%- include("partials/header") %>
+
+<%
+  const latestVitals = recentVitals && recentVitals.length > 0 ? recentVitals[0] : null;
+  const insightAlerts = patientInsights?.vitals_summary?.alerts || [];
+  const trendNotes = patientInsights?.vitals_summary?.trendNotes || [];
+  const selfAccessMode = typeof isSelfAccess !== "undefined" ? isSelfAccess : false;
+  const workspaceTitle = selfAccessMode ? "My medical record" : "Authenticated patient workspace";
+  const workspaceDescription = selfAccessMode
+    ? ""
+    : "";
+%>
+
+<main class="container">
+  <section class="page-header">
+    <h1>Patient Clinical Record</h1>
+
+  </section>
+
+  <% if (!selfAccessMode && vitalsSaved) { %>
+    <div class="alert-success">A new vital-sign entry was saved successfully.</div>
+  <% } %>
+
+  <%- include("partials/patient-workspace", {
+    patient: patientData,
+    familyMembers,
+    familyCount,
+    activeTab: "portal",
+    workspaceTitle,
+    workspaceDescription
+  }) %>
+
+  <section class="grid-two portal-focus-grid">
+    <div class="card">
+      <h2>Clinical Record</h2>
+      <div class="record-block record-block-spaced">
+        <p><strong>Diagnosis:</strong> <%= patientData.diagnosis || "No diagnosis recorded." %></p>
+        <p><strong>Allergies:</strong> <%= patientData.allergies || "None recorded." %></p>
+        <p><strong>Medications:</strong> <%= patientData.medications || "None recorded." %></p>
+        <p><strong>Chronic Conditions:</strong> <%= patientData.chronic_conditions || "None recorded." %></p>
+        <p><strong>Last Visit Date:</strong> <%= patientData.last_visit_date || "N/A" %></p>
+        <p><strong>Doctor / Staff:</strong> <%= patientData.doctor_name || "N/A" %></p>
+        <p><strong>Clinical Notes:</strong> <%= patientData.notes || "No notes available." %></p>
+      </div>
+    </div>
+
+    <div class="card decision-support-card">
+      <div class="results-header">
+        <h2>Smart Clinical Insights</h2>
+      </div>
+
+      <div class="decision-score-row">
+
+
+      </div>
+
+      <p class="summary-text"><%= patientInsights?.summary || "No smart clinical summary is available yet." %></p>
+      <p><strong>Family Pattern:</strong> <%= patientInsights?.hereditary_story || "No hereditary narrative available." %></p>
+
+      <div class="grid-two portal-focus-grid compact-grid" style="margin-top: 1rem;">
+        <div>
+          <h3>Recommendations</h3>
+          <% if (patientInsights?.recommendations?.length) { %>
+            <ul class="insight-list">
+              <% patientInsights.recommendations.forEach((item) => { %>
+                <li><%= item %></li>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <p>No recommendations generated.</p>
+          <% } %>
+        </div>
+
+        <div>
+          <h3>Monitoring Focus</h3>
+          <% if (patientInsights?.monitoring_focus?.length) { %>
+            <ul class="insight-list">
+              <% patientInsights.monitoring_focus.forEach((item) => { %>
+                <li><%= item %></li>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <p>No monitoring focus items generated.</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid-two portal-focus-grid" style="margin-top: 1.5rem;">
+    <div class="card">
+      <h2>Emergency Snapshot</h2>
+      <div class="record-block record-block-spaced">
+        <p>
+          <strong>Priority Level:</strong>
+          <span class="priority-badge priority-<%= patientData.priority_level || 'medium' %>">
+            <%= (patientData.priority_level || "medium").toUpperCase() %>
+          </span>
+        </p>
+        <p><strong>Risk Flags:</strong> <%= patientData.risk_flags || "None" %></p>
+        <p><strong>Emergency Summary:</strong> <%= patientData.emergency_summary || "No emergency summary available." %></p>
+        <p><strong>Emergency Contact:</strong> <%= patientData.emergency_contact_name || "N/A" %></p>
+        <p><strong>Emergency Phone:</strong> <%= patientData.emergency_contact_phone || "N/A" %></p>
+      </div>
+
+      <% if (locationLinks?.patient_address_lookup || locationLinks?.nearby_hospitals) { %>
+        <div class="action-buttons" style="margin-top: 1rem;">
+          <% if (locationLinks.patient_address_lookup) { %>
+          <% } %>
+          <% if (locationLinks.nearby_hospitals) { %>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
+
+
+  </section>
+
+  <% if (!selfAccessMode) { %>
+    <section class="card" style="margin-top: 1.5rem;">
+      <div class="results-header">
+        <h2>Record New Vital Signs</h2>
+      </div>
+
+      <form action="/patient-vitals/<%= patientData.patient_code %>" method="POST" class="patient-form">
+        <div class="form-grid">
+          <div>
+            <label for="systolic_bp">Systolic BP</label>
+            <input type="number" id="systolic_bp" name="systolic_bp" min="40" max="260" placeholder="120" />
+          </div>
+          <div>
+            <label for="diastolic_bp">Diastolic BP</label>
+            <input type="number" id="diastolic_bp" name="diastolic_bp" min="30" max="180" placeholder="80" />
+          </div>
+          <div>
+            <label for="heart_rate">Heart Rate</label>
+            <input type="number" id="heart_rate" name="heart_rate" min="20" max="240" placeholder="78" />
+          </div>
+          <div>
+            <label for="oxygen_saturation">SpO₂</label>
+            <input type="number" step="0.1" id="oxygen_saturation" name="oxygen_saturation" min="50" max="100" placeholder="98" />
+          </div>
+          <div>
+            <label for="temperature_c">Temperature (°C)</label>
+            <input type="number" step="0.1" id="temperature_c" name="temperature_c" min="30" max="45" placeholder="36.8" />
+          </div>
+          <div>
+            <label for="respiratory_rate">Respiratory Rate</label>
+            <input type="number" id="respiratory_rate" name="respiratory_rate" min="5" max="60" placeholder="18" />
+          </div>
+          <div>
+            <label for="glucose_mg_dl">Glucose (mg/dL)</label>
+            <input type="number" step="0.1" id="glucose_mg_dl" name="glucose_mg_dl" min="20" max="600" placeholder="110" />
+          </div>
+          <div class="full-width">
+            <label for="notes">Monitoring Notes</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="Optional bedside note, symptoms, or context."></textarea>
+          </div>
+        </div>
+
+        <div class="page-actions" style="margin-top: 1.5rem;">
+          <button type="submit" class="btn">Save Vital Signs</button>
+        </div>
+      </form>
+    </section>
+  <% } %>
+
+  <section class="card" style="margin-top: 1.5rem;">
+    <div class="results-header">
+      <h2>Vitals Trends</h2>
+    </div>
+
+    <% if (recentVitals && recentVitals.length > 0) { %>
+      <% if (trendNotes.length) { %>
+        <div class="analytics-chip-grid" style="margin-top: 1rem;">
+          <% trendNotes.forEach((item) => { %>
+            <div class="analytics-chip"><strong>Trend</strong><span><%= item %></span></div>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <div class="table-responsive" style="margin-top: 1.25rem;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Recorded At</th>
+              <th>BP</th>
+              <th>HR</th>
+              <th>SpO₂</th>
+              <th>Temp</th>
+              <th>Resp</th>
+              <th>Glucose</th>
+              <th>By</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recentVitals.forEach((entry) => { %>
+              <tr>
+                <td><%= entry.created_at || "N/A" %></td>
+                <td><%= entry.systolic_bp || "—" %>/<%= entry.diastolic_bp || "—" %></td>
+                <td><%= entry.heart_rate || "—" %></td>
+                <td><%= entry.oxygen_saturation || "—" %></td>
+                <td><%= entry.temperature_c || "—" %></td>
+                <td><%= entry.respiratory_rate || "—" %></td>
+                <td><%= entry.glucose_mg_dl || "—" %></td>
+                <td><%= entry.recorded_by || "N/A" %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <p>No vitals trend data is available yet.</p>
+    <% } %>
+  </section>
+
+  <section class="grid-two portal-focus-grid" style="margin-top: 1.5rem;">
+    <div class="card">
+      <h2>Identity and Contact</h2>
+      <div class="details-grid">
+        <div><strong>Full Name:</strong> <%= patientData.first_name %> <%= patientData.last_name %></div>
+        <div><strong>National ID:</strong> <%= patientData.national_id || "N/A" %></div>
+        <div><strong>Gender:</strong> <%= patientData.gender || "N/A" %></div>
+        <div><strong>Date of Birth:</strong> <%= patientData.date_of_birth || "N/A" %></div>
+        <div><strong>Phone:</strong> <%= patientData.phone || "N/A" %></div>
+        <div><strong>Email:</strong> <%= patientData.email || "N/A" %></div>
+        <div class="full-width"><strong>Address:</strong> <%= patientData.address || "N/A" %></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Inherited Risk Snapshot</h2>
+      <% if (patientRiskAssessment) { %>
+        <div class="details-grid">
+          <div><strong>Overview:</strong> <%= patientRiskAssessment.overview %></div>
+          <div><strong>Highest Level:</strong> <%= patientRiskAssessment.highest_level %></div>
+          <div><strong>Alert Count:</strong> <%= patientRiskAssessment.alert_count %></div>
+          <div><strong>Hereditary Score:</strong> <%= patientRiskAssessment.hereditary_score %></div>
+          <div><strong>Linked Family Members:</strong> <%= familyCount %></div>
+        </div>
+
+        <% if (patientRiskAssessment.alerts && patientRiskAssessment.alerts.length > 0) { %>
+          <div class="alerts-list compact-alerts" style="margin-top: 1rem;">
+            <% patientRiskAssessment.alerts.slice(0, 3).forEach((alert) => { %>
+              <div class="alert-card alert-<%= alert.level %>">
+                <h3><%= alert.condition %> — <%= alert.level.toUpperCase() %> risk</h3>
+                <p><strong>Summary:</strong> <%= alert.summary %></p>
+                <p><strong>Recommendation:</strong> <%= alert.recommendation %></p>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <p>No inherited risk alerts detected from linked family records.</p>
+        <% } %>
+      <% } else { %>
+        <p>Risk assessment is not available.</p>
+      <% } %>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top: 1.5rem;">
+    <div class="results-header">
+      <h2>Linked Family Members</h2>
+      <p><%= familyMembers ? familyMembers.length : 0 %> connected profile(s)</p>
+    </div>
+
+    <% if (familyMembers && familyMembers.length > 0) { %>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Patient Code</th>
+              <th>Full Name</th>
+              <th>Relationship</th>
+              <th>Gender</th>
+              <th>Blood Type</th>
+              <th>Risk Flags</th>
+              <th>Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% familyMembers.forEach((member) => { %>
+              <tr>
+                <td><%= member.patient_code %></td>
+                <td><%= member.first_name %> <%= member.last_name %></td>
+                <td><%= member.display_relationship || member.relationship || "Relative" %></td>
+                <td><%= member.gender || "N/A" %></td>
+                <td><%= member.blood_type || "N/A" %></td>
+                <td><%= member.risk_flags || "None" %></td>
+                <td><%= member.priority_level || "medium" %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <p>No family members are linked to this patient yet.</p>
+    <% } %>
+  </section>
+
+  <section class="page-actions" style="margin-top: 1.5rem;">
+    <% if (selfAccessMode) { %>
+      <a href="/logout" class="btn">Logout</a>
+    <% } else { %>
+    <% } %>
+  </section>
+</main>
+
+<%- include("partials/footer") %>

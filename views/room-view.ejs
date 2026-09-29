@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="room-screen-body">
+
+  <% if (error || !patient) { %>
+    <div class="room-error-wrapper">
+      <div class="room-error-card">
+        <h1>⚠️ Room Device Error</h1>
+        <p><%= error || "Patient data could not be loaded." %></p>
+      </div>
+    </div>
+  <% } else { %>
+
+    <div class="room-screen-wrapper">
+
+      <div class="room-topbar">
+        <div>
+          <h1>🖥 In-Room Patient View</h1>
+        </div>
+        <div class="room-top-actions">
+          <span class="room-code"><%= patient.patient_code %></span>
+          <span class="priority-badge priority-<%= patient.priority_level || 'medium' %>">
+            <%= (patient.priority_level || "medium").toUpperCase() %>
+          </span>
+        </div>
+      </div>
+
+      <div class="room-main-grid">
+        <div class="room-panel primary-room-panel">
+          <h2>👤 Patient Identity</h2>
+          <div class="room-big-name"><%= patient.first_name %> <%= patient.last_name %></div>
+
+          <div class="room-info-grid">
+            <div class="room-info-box">
+              <span>Gender</span>
+              <strong><%= patient.gender || "N/A" %></strong>
+            </div>
+
+            <div class="room-info-box">
+              <span>Date of Birth</span>
+              <strong><%= patient.date_of_birth || "N/A" %></strong>
+            </div>
+
+            <div class="room-info-box">
+              <span>Blood Type</span>
+              <strong class="blood-badge large-blood"><%= patient.blood_type || "N/A" %></strong>
+            </div>
+
+            <div class="room-info-box">
+              <span>Patient Code</span>
+              <strong><%= patient.patient_code %></strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="room-panel">
+          <h2>🚨 Emergency Summary</h2>
+          <div class="room-alert-box">
+            <%= patient.emergency_summary || "No emergency summary available." %>
+          </div>
+
+          <div class="room-tags">
+            <% if (patient.risk_flags) { %>
+              <% patient.risk_flags.split(",").forEach(flag => { %>
+                <span class="risk-tag"><%= flag.trim() %></span>
+              <% }) %>
+            <% } else { %>
+              <span class="risk-tag safe-tag">No risk flags</span>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="room-panel">
+          <h2>💊 Medical Information</h2>
+          <div class="room-list">
+            <div class="room-row"><span>Diagnosis</span><strong><%= patient.diagnosis || "N/A" %></strong></div>
+            <div class="room-row"><span>Allergies</span><strong class="room-danger-text"><%= patient.allergies || "None" %></strong></div>
+            <div class="room-row"><span>Medications</span><strong><%= patient.medications || "None" %></strong></div>
+            <div class="room-row"><span>Chronic Conditions</span><strong><%= patient.chronic_conditions || "None" %></strong></div>
+            <div class="room-row"><span>Last Visit</span><strong><%= patient.last_visit_date || "N/A" %></strong></div>
+            <div class="room-row"><span>Doctor</span><strong><%= patient.doctor_name || "N/A" %></strong></div>
+          </div>
+        </div>
+
+        <div class="room-panel">
+          <h2>📞 Emergency Contact</h2>
+          <div class="room-list">
+            <div class="room-row"><span>Name</span><strong><%= patient.emergency_contact_name || "N/A" %></strong></div>
+            <div class="room-row"><span>Phone</span><strong class="room-phone-big"><%= patient.emergency_contact_phone || "N/A" %></strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="room-bottom-grid">
+        <div class="room-panel wide-room-panel">
+          <h2>🧬 Inherited Risk Assessment</h2>
+
+          <% if (riskAssessment) { %>
+            <p class="room-overview"><strong>Overview:</strong> <%= riskAssessment.overview %></p>
+
+            <div class="room-risk-summary">
+              <div class="room-summary-item">
+                <span>Alerts</span>
+                <strong><%= riskAssessment.alert_count %></strong>
+              </div>
+
+              <div class="room-summary-item">
+                <span>Highest Level</span>
+                <strong>
+                  <% if (riskAssessment.highest_level !== "none") { %>
+                    <span class="priority-badge priority-<%= riskAssessment.highest_level %>">
+                      <%= riskAssessment.highest_level.toUpperCase() %>
+                    </span>
+                  <% } else { %>
+                    None
+                  <% } %>
+                </strong>
+              </div>
+
+              <div class="room-summary-item">
+                <span>Family Members</span>
+                <strong><%= familyMembers ? familyMembers.length : 0 %></strong>
+              </div>
+            </div>
+
+            <% if (riskAssessment.alerts.length > 0) { %>
+              <div class="risk-alert-grid">
+                <% riskAssessment.alerts.forEach(alert => { %>
+                  <div class="risk-alert-card risk-<%= alert.level %>">
+                    <div class="risk-card-top">
+                      <h4><%= alert.condition %></h4>
+                      <span class="priority-badge priority-<%= alert.level %>">
+                        <%= alert.level.toUpperCase() %>
+                      </span>
+                    </div>
+                    <p><%= alert.summary %></p>
+                    <p><strong>Evidence:</strong> <%= alert.evidence_text %></p>
+                    <p><strong>Recommendation:</strong> <%= alert.recommendation %></p>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <p>No inherited risk alerts detected from linked family members.</p>
+            <% } %>
+          <% } else { %>
+            <p>No inherited risk assessment available.</p>
+          <% } %>
+        </div>
+
+        <div class="room-panel">
+          <h2>👨‍👩‍👧 Linked Family Members</h2>
+
+          <% if (familyMembers && familyMembers.length > 0) { %>
+            <div class="room-family-list">
+              <% familyMembers.forEach(member => { %>
+                <div class="room-family-card">
+                  <div class="room-family-name">
+                    <strong><%= member.first_name %> <%= member.last_name %></strong>
+                  </div>
+                  <div class="room-family-meta">
+                    <span><%= member.display_relationship || member.relationship %></span>
+                    <span class="blood-badge small-blood"><%= member.blood_type || "N/A" %></span>
+                  </div>
+                  <% if (member.risk_flags && member.risk_flags !== "None") { %>
+                    <div class="room-family-risks"><%= member.risk_flags %></div>
+                  <% } %>
+                </div>
+              <% }) %>
+            </div>
+          <% } else { %>
+            <p>No linked family members available.</p>
+          <% } %>
+        </div>
+      </div>
+
+
+
+    </div>
+  <% } %>
+
+</body>
+</html>
